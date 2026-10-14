@@ -1,9 +1,14 @@
 #%%
+# Problem Set 3
+#%%
 import numpy as np
 from scipy.interpolate import CubicSpline
 import matplotlib.pyplot as plt
+import pandas as pd
 
-#%%
+##%%
+# 
+# #%%
 gamma = 5.0
 beta = 0.95
 T = 5
@@ -34,9 +39,8 @@ weight = np.array([1.0 / 6.0, 2.0 / 3.0, 1.0 / 6.0])
 # Final Period
 c[:, T - 1] = np.exp(gw)
 v[:, T - 1] = (c[:, T - 1] ** (1 - gamma)) / (1 - gamma)
-a[:, T - 1] = 0.0
 
-def compute_value_function(egw = egw, gw = gw):
+def compute_value_function():
     for i in range(T - 2, -1, -1):
         spline = CubicSpline(gw, v[:, i + 1], bc_type='not-a-knot')
         for z in range(nw):
@@ -58,8 +62,7 @@ def compute_value_function(egw = egw, gw = gw):
             a[z, i] = ga[imax[1]]
     return v, c , a
 
-c = compute_value_function()[1]
-v = compute_value_function()[0]
+v, c, a = compute_value_function()
 #%%
 plt.figure(figsize=(10, 6))
 for i in range(T):
@@ -68,33 +71,37 @@ plt.title('Consumption Policy Functions')
 plt.xlabel('Wealth')
 plt.ylabel('Consumption')
 plt.legend()
+#%%
+plt.figure(figsize=(10, 6))
+for i in range(T):
+    plt.plot(egw, a[:, i], label=f'Time {i+1}')
+plt.title('Allocation Policy Functions')
+plt.xlabel('Wealth')
+plt.ylabel('Allocation to Risky Asset')
+plt.legend()
 # %%
 
 # %%
-agents_c = np.zeros((100, T))
-agents_w = np.zeros((100, T))
-agents_a = np.zeros((100, T))
-w0 = np.log(10)
-minw = np.log(5.0)
-maxw = np.log(30.0)
-nw = 20
-egw = np.exp(gw)
-for i in range(1,100):
-    v, c, a = compute_value_function(egw, gw)
+agents_c = np.zeros((10000, T))
+agents_w = np.zeros((10000, T))
+agents_a = np.zeros((10000, T))
+agents_w[:, 0] = 10.0
+for i in range(10000):
     for t in range(T):
-        agents_c[i, t] = c[0, t]
-        agents_a[i, t] = a[0, t]
-
-        port_ret = agents_a[i, t] * (1 + mu) + (1 - agents_a[i, t]) * (1 + r)
-        if t == 0:
-            agents_w[i, t] = port_ret * (w0 - agents_c[i, t])
-        else:
-            agents_w[i, t] = port_ret * (agents_w[i, t-1] - agents_c[i, t])
+        c_spl = np.clip(CubicSpline(gw, c[:, t], bc_type='not-a-knot')(np.log(agents_w[i, t])), 0, agents_w[i, t])
+        a_spl = np.clip(CubicSpline(gw, a[:, t], bc_type='not-a-knot')(np.log(agents_w[i, t])), 0, 1)
+        
+        agents_c[i, t] = c_spl
+        agents_a[i, t] = a_spl
+        ret = np.random.normal(mu, sig)
+        port_ret = a_spl * (1 + ret) + (1 - a_spl) * (1 + r)
+        if t < T - 1:
+            agents_w[i, t+1] = port_ret * (agents_w[i, t] - c_spl)
+            
 avg_c = np.mean(agents_c, axis=0)
 avg_a = np.mean(agents_a, axis=0)
 avg_w = np.mean(agents_w, axis=0)
 # %%
-import pandas as pd
 df = pd.DataFrame({
     'Consumption': avg_c,
     'Assets': avg_a,
