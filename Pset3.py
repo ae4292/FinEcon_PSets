@@ -74,7 +74,11 @@ plt.legend()
 agents_c = np.zeros((10000, T))
 agents_w = np.zeros((10000, T))
 agents_a = np.zeros((10000, T))
-w0 = 10
+w0 = np.log(10)
+minw = np.log(5.0)
+maxw = np.log(30.0)
+nw = 20
+egw = np.exp(gw)
 for i in range(1,10000):
     v, c, a = compute_value_function(egw, gw)
     for t in range(T):
