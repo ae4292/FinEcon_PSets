@@ -71,15 +71,15 @@ plt.legend()
 # %%
 
 # %%
-agents_c = np.zeros((10000, T))
-agents_w = np.zeros((10000, T))
-agents_a = np.zeros((10000, T))
+agents_c = np.zeros((100, T))
+agents_w = np.zeros((100, T))
+agents_a = np.zeros((100, T))
 w0 = np.log(10)
 minw = np.log(5.0)
 maxw = np.log(30.0)
 nw = 20
 egw = np.exp(gw)
-for i in range(1,10000):
+for i in range(1,100):
     v, c, a = compute_value_function(egw, gw)
     for t in range(T):
         agents_c[i, t] = c[0, t]
@@ -89,7 +89,7 @@ for i in range(1,10000):
         if t == 0:
             agents_w[i, t] = port_ret * (w0 - agents_c[i, t])
         else:
-            agents_w[i, t+1] = port_ret * (agents_w[i, t-1] - agents_c[i, t])
+            agents_w[i, t] = port_ret * (agents_w[i, t-1] - agents_c[i, t])
 avg_c = np.mean(agents_c, axis=0)
 avg_a = np.mean(agents_a, axis=0)
 avg_w = np.mean(agents_w, axis=0)
