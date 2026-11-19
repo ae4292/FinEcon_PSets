@@ -15,7 +15,9 @@ log_at = np.zeros(100000)
 kt = np.full(100000, K_bar)
 for i in range(1, 100000):
     log_at[i] = (1-rho)*np.log(A) + rho*log_at[i-1] + sigma*np.random.normal(0, 1)
-    
+sd_at = np.std(log_at)
+Avec = np.linspace(-3*sd_at, 3*sd_at, 5)
 #%%
 lower = 0.1*K_bar
 upper = 1.9*K_bar
+Kvec= np.linspace(lower, upper, 1000)
